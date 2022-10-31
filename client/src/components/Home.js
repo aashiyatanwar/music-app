@@ -18,6 +18,8 @@ import { RiAddFill } from "react-icons/ri";
 import { TiTick } from "react-icons/ti";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart, faHeartBroken } from "@fortawesome/free-solid-svg-icons";
+import AlertSuccess from "./AlertSuccess";
+import AlertError from "./AlertError";
 
 const Home = () => {
   const [
@@ -124,10 +126,14 @@ const Home = () => {
 };
 
 export const HomeSongContainer = ({ musics }) => {
-  const [{ isSongPlaying, song, user }, dispatch] = useStateValue();
+  const [{ isSongPlaying, song, user, favourite }, dispatch] = useStateValue();
 
   const [isLoading, setIsLoading] = useState(false);
-
+  const [alert, setAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState(null);
+  const [isFavourite , setIsFavourite] = useState(false);
+  const [favouriteId , setFavouriteId] = useState('')
+  
   const addSongToContext = (index) => {
     //console.log("index" , index)
     if (!isSongPlaying) {
@@ -147,36 +153,12 @@ export const HomeSongContainer = ({ musics }) => {
   const addSongsToFavourites = (userId, songId) => {
     console.log("songId", songId);
     console.log("userId", userId);
-    //setIsFavourite(false)
-    //let favBool;
 
-    if (songId && userId) {
-      favouritesSong(userId, songId).then((res) => {
-        console.log("res", res);
-        if (res) {
-          getAllUsers().then((data) => {
-            console.log("data", data);
-            dispatch({
-              type: actionType.SET_ALL_USERS,
-              allUsers: data.data,
-            });
-          });
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 2000);
-        }
-        // favBool=res;
-      });
-
-      //setIsFavourite(true);
-    }
-    //return <SetStateAndToggle favBool={favBool} userId={userId} songId={songId}/>
-  };
-
-  const removeFavourite = (userId, songId) => {
-    removeFavourites(userId, songId).then((res) => {
-      console.log("Remove-res", res);
-      if (res) {
+    favouritesSong(userId, songId).then((res) => {
+      console.log("res", res);
+      if (res.data.success) {
+        setAlert("success");
+        setAlertMsg(res.data.msg);
         getAllUsers().then((data) => {
           console.log("data", data);
           dispatch({
@@ -185,36 +167,49 @@ export const HomeSongContainer = ({ musics }) => {
           });
         });
         setTimeout(() => {
-          setIsLoading(false);
-        }, 2000);
+          setAlert(false);
+        }, 4000);
+      } else {
+        setAlert("error");
+        setAlertMsg(res.data.msg);
+        setTimeout(() => {
+          setAlert(false);
+        }, 4000);
       }
+      setFavouriteId(songId)
+      setIsFavourite(true)
     });
+    
   };
 
-  /*function SetStateAndToggle(userId , songId , favBool){
-    const currentlyAFavorite = <FontAwesomeIcon icon={faHeart} />
-    const notCurrentlyAFavorite = <FontAwesomeIcon icon={faHeartBroken}/>
-
-    const [isFavourite, setIsFavourite] = useState(favBool);
-    const toggleFavourite = (userId , songId) => {
-      setIsFavourite((isFavourite)=>{
-        if(isFavourite == true){
-          console.log("unfavourrite")
-          console.log("user" , userId , "song" , songId , "fav" , favBool)
-          removeFavourite(userId,songId)
-
-
-        }
-
-        if(isFavourite == false){
-          console.log("favourite");
-          addSongToContext(userId,songId)
-        }
-        return !isFavourite
-      })
-    }
-
-  }*/
+  const removeFavourite = (userId, songId) => {
+    removeFavourites(userId, songId).then((res) => {
+      console.log("Remove-res", res);
+      setFavouriteId(songId)
+      if (res.data.success) {
+        setAlert("success");
+        setAlertMsg(res.data.msg);
+        getAllUsers().then((data) => {
+          console.log("data", data);
+          dispatch({
+            type: actionType.SET_ALL_USERS,
+            allUsers: data.data,
+          });
+        });
+        setTimeout(() => {
+          setAlert(false);
+        }, 4000);
+      } else {
+        setAlert("error");
+        setAlertMsg(res.data.msg);
+        setTimeout(() => {
+          setAlert(false);
+        }, 4000);
+      }
+      setFavouriteId('')
+      setIsFavourite(false);
+    });
+  };
 
   return (
     <>
@@ -235,6 +230,7 @@ export const HomeSongContainer = ({ musics }) => {
               className=" w-full h-full rounded-lg object-cover"
             />
           </div>
+          
 
           <p className="text-base text-headingColor font-semibold my-2">
             {data.name.length > 25 ? `${data.name.slice(0, 25)}` : data.name}
@@ -246,13 +242,35 @@ export const HomeSongContainer = ({ musics }) => {
             <button onClick={() => addSongToContext(index)}>
               <GrPlayFill className="text-textColor group-hover:text-headingColor text-xl cursor-pointer"></GrPlayFill>
             </button>
-
-            <button
-              onClick={() => addSongsToFavourites(user?.user._id, data._id)}
-            >
-              <RiAddFill className="text-textColor group-hover:text-headingColor text-2xl cursor-pointer"></RiAddFill>
-            </button>
+            <div>
+              
+            </div>
+            
+             {(data._id !== favouriteId) && (
+               <button
+               onClick={() => addSongsToFavourites(user?.user._id, data._id) }
+             >
+               <RiAddFill className="text-textColor group-hover:text-headingColor text-2xl cursor-pointer"></RiAddFill>
+             </button>
+             )}
+            
+            
+            {(data._id === favouriteId) && (
+              <button onClick = {() => removeFavourite(user?.user._id, data._id) }>
+              <TiTick className="text-textColor group-hover:text-headingColor text-2xl cursor-pointer" ></TiTick>
+              </button>
+            )}
+            
           </div>
+          {alert && (
+            <>
+              {alert === "success" ? (
+                <AlertSuccess msg={alertMsg} />
+              ) : (
+                <AlertError msg={alertMsg} />
+              )}
+            </>
+          )}
         </motion.div>
       ))}
     </>

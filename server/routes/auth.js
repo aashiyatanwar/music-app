@@ -2,6 +2,9 @@ const router = require("express").Router();
 
 const admin = require("../config/firebase.config");
 const user = require("../models/user");
+const { db } = require("../models/user");
+const { count } = require("console");
+const { query } = require("express");
 
 router.get("/login", async (req, res) => {
   if (!req.headers.authorization) {
@@ -15,6 +18,7 @@ router.get("/login", async (req, res) => {
     }
     // checking user email already exists or not
     const userExists = await user.findOne({ user_id: decodeValue.user_id });
+    //console.log("userExists" , userExists)
     if (!userExists) {
       newUserData(decodeValue, req, res);
     } else {
@@ -67,16 +71,23 @@ router.put("/favourites/:userId", async (req, res) => {
   const filter = { _id: req.params.userId };
   const songId = req.query;
   
+  
+  console.log(filter, songId);
+  const songExist = await user.find(filter, { favourites: songId});
+  //const find = user.findOne().favourites.songId
+  //console.log("find" , find)
+  console.log("songExist = ", songExist);
 
   try {
-    //console.log(filter);
+    //if(!songExist){
+      const result = await user.updateOne(filter, {
+        $push: { favourites: songId },
+      });
+      console.log("result", result);
+      res.status(200).send({ success: true, msg: "Song added to favourites" });
+
+    //}
     
-    const result = await user.updateOne(filter, {
-      $push: { favourites: songId },
-    });
-    //console.log("favourites" , favourites)
-    console.log("songId" , songId);
-    res.status(200).send({ success: true, msg: "Song added to favourites" });
   } catch (error) {
     res.status(400).send({ success: false, msg: error });
   }
@@ -105,7 +116,7 @@ router.get("/getUser/:userId", async (req, res) => {
     new: true,
   };
 
-  const userExists = await user.findOne({ _id: filter } , options);
+  const userExists = await user.findOne({ _id: filter }, options);
   if (!userExists)
     return res.status(400).send({ success: false, msg: "Invalid User ID" });
   if (userExists.favourites) {
@@ -127,6 +138,7 @@ router.put("/updateRole/:userId", async (req, res) => {
 
   try {
     const result = await user.findOneAndUpdate(filter, { role: role }, options);
+    console.log("update ", result);
     res.status(200).send({ user: result });
   } catch (err) {
     res.status(400).send({ success: false, msg: err });
@@ -160,8 +172,5 @@ router.put("/removeFavourites/:userId", async (req, res) => {
     res.status(400).send({ success: false, msg: error });
   }
 });
-
-
-
 
 module.exports = router;

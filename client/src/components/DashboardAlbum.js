@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { MdDelete } from "react-icons/md";
 import { actionType } from "../context/reducer";
 import { getAllAlbums, deleteAlbumById } from "../api";
+import AlertSuccess from "./AlertSuccess";
+import AlertError from "./AlertError";
+
 
 const DashboardAlbum = () => {
   const [{ allAlbums }, dispatch] = useStateValue();
@@ -107,6 +110,15 @@ export const AlbumCard = ({ data, index }) => {
               No
             </button>
           </div>
+          {alert && (
+            <>
+              {alert === "success" ? (
+                <AlertSuccess msg={alertMsg} />
+              ) : (
+                <AlertError msg={alertMsg} />
+              )}
+            </>
+          )}
         </motion.div>
       )}
     </motion.div>
