@@ -2,9 +2,8 @@ const router = require("express").Router();
 
 const admin = require("../config/firebase.config");
 const user = require("../models/user");
-const { db } = require("../models/user");
-const { count } = require("console");
-const { query } = require("express");
+
+
 
 router.get("/login", async (req, res) => {
   if (!req.headers.authorization) {
@@ -70,24 +69,14 @@ const updateUserData = async (decodeValue, req, res) => {
 router.put("/favourites/:userId", async (req, res) => {
   const filter = { _id: req.params.userId };
   const songId = req.query;
-  
-  
+
   console.log(filter, songId);
-  const songExist = await user.find(filter, { favourites: songId});
-  //const find = user.findOne().favourites.songId
-  //console.log("find" , find)
-  console.log("songExist = ", songExist);
 
   try {
-    //if(!songExist){
-      const result = await user.updateOne(filter, {
-        $push: { favourites: songId },
-      });
-      console.log("result", result);
-      res.status(200).send({ success: true, msg: "Song added to favourites" });
-
-    //}
-    
+    const result = await user.updateOne(filter, {
+      $push: { favourites: songId },
+    });
+    res.status(200).send({ success: true, msg: "Song added to favourites" });
   } catch (error) {
     res.status(400).send({ success: false, msg: error });
   }

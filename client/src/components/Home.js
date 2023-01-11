@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
   getAllSongs,
-  getFavouritesSongs,
   favouritesSong,
   getAllUsers,
   removeFavourites,
 } from "../api";
 import { actionType } from "../context/reducer";
 import { useStateValue } from "../context/StateProvider";
-import { SongCard } from "./DashboardSongs";
+
 import Filter from "./Filter";
 import Header from "./Header";
 import SearchBar from "./SearchBar";
@@ -16,8 +15,7 @@ import { motion } from "framer-motion";
 import { GrPlayFill } from "react-icons/gr";
 import { RiAddFill } from "react-icons/ri";
 import { TiTick } from "react-icons/ti";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart, faHeartBroken } from "@fortawesome/free-solid-svg-icons";
+
 import AlertSuccess from "./AlertSuccess";
 import AlertError from "./AlertError";
 
@@ -128,12 +126,14 @@ const Home = () => {
 export const HomeSongContainer = ({ musics }) => {
   const [{ isSongPlaying, song, user, favourite }, dispatch] = useStateValue();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [alert, setAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState(null);
-  const [isFavourite , setIsFavourite] = useState(false);
-  const [favouriteId , setFavouriteId] = useState('')
-  
+
+  user && isLoading && setIsLoading(false);
+
+  console.log(isLoading, user, musics);
+
   const addSongToContext = (index) => {
     //console.log("index" , index)
     if (!isSongPlaying) {
@@ -176,16 +176,15 @@ export const HomeSongContainer = ({ musics }) => {
           setAlert(false);
         }, 4000);
       }
-      setFavouriteId(songId)
-      setIsFavourite(true)
+      //setFavouriteId(songId);
+      //setIsFavourite(true);
     });
-    
   };
 
   const removeFavourite = (userId, songId) => {
     removeFavourites(userId, songId).then((res) => {
       console.log("Remove-res", res);
-      setFavouriteId(songId)
+      //setFavouriteId(songId);
       if (res.data.success) {
         setAlert("success");
         setAlertMsg(res.data.msg);
@@ -206,75 +205,89 @@ export const HomeSongContainer = ({ musics }) => {
           setAlert(false);
         }, 4000);
       }
-      setFavouriteId('')
-      setIsFavourite(false);
+      //setFavouriteId("");
+      //setIsFavourite(false);
     });
   };
 
-  return (
-    <>
-      {musics?.map((data, index) => (
-        <motion.div
-          key={data._id}
-          whileTap={{ scale: 0.8 }}
-          initial={{ opacity: 0, translateX: -50 }}
-          animate={{ opacity: 1, translateX: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="relative w-40 min-w-210 px-2 py-4 cursor-pointer hover:shadow-xl hover:bg-card bg-gray-100 shadow-md rounded-lg flex flex-col items-center"
-        >
-          <div className="w-40 min-w-[160px] h-40 min-h-[160px] rounded-lg drop-shadow-lg relative overflow-hidden">
-            <motion.img
-              whileHover={{ scale: 1.05 }}
-              src={data.imageURL}
-              alt=""
-              className=" w-full h-full rounded-lg object-cover"
-            />
-          </div>
-          
-
-          <p className="text-base text-headingColor font-semibold my-2">
-            {data.name.length > 25 ? `${data.name.slice(0, 25)}` : data.name}
-            <span className="block text-sm text-gray-400 my-1">
-              {data.artist}
-            </span>
-          </p>
-          <div className="flex gap-4 px-4">
-            <button onClick={() => addSongToContext(index)}>
-              <GrPlayFill className="text-textColor group-hover:text-headingColor text-xl cursor-pointer"></GrPlayFill>
-            </button>
-            <div>
-              
+  const renderSongs = (definedUser, definedMusic) => {
+    //console.log(definedUser.user.favourites, definedMusic);
+    return (
+      <>
+        {definedMusic?.map((data, index) => (
+          <motion.div
+            key={data._id}
+            whileTap={{ scale: 0.8 }}
+            initial={{ opacity: 0, translateX: -50 }}
+            animate={{ opacity: 1, translateX: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="relative w-40 min-w-210 px-2 py-4 cursor-pointer hover:shadow-xl hover:bg-card bg-gray-100 shadow-md rounded-lg flex flex-col items-center"
+          >
+            <div className="w-40 min-w-[160px] h-40 min-h-[160px] rounded-lg drop-shadow-lg relative overflow-hidden">
+              <motion.img
+                whileHover={{ scale: 1.05 }}
+                src={data.imageURL}
+                alt=""
+                className=" w-full h-full rounded-lg object-cover"
+              />
             </div>
-            
-             {(data._id !== favouriteId) && (
-               <button
-               onClick={() => addSongsToFavourites(user?.user._id, data._id) }
-             >
-               <RiAddFill className="text-textColor group-hover:text-headingColor text-2xl cursor-pointer"></RiAddFill>
-             </button>
-             )}
-            
-            
-            {(data._id === favouriteId) && (
-              <button onClick = {() => removeFavourite(user?.user._id, data._id) }>
-              <TiTick className="text-textColor group-hover:text-headingColor text-2xl cursor-pointer" ></TiTick>
+
+            <p className="text-base text-headingColor font-semibold my-2">
+              {data.name.length > 25 ? `${data.name.slice(0, 25)}` : data.name}
+              <span className="block text-sm text-gray-400 my-1">
+                {data.artist}
+              </span>
+            </p>
+            <div className="flex gap-4 px-4">
+              <button onClick={() => addSongToContext(index)}>
+                <GrPlayFill className="text-textColor group-hover:text-headingColor text-xl cursor-pointer"></GrPlayFill>
               </button>
-            )}
-            
-          </div>
-          {alert && (
-            <>
-              {alert === "success" ? (
-                <AlertSuccess msg={alertMsg} />
+              <div></div>
+
+              {/*console.log(data)*/}
+
+              {definedUser.user.favourites.some(
+                (favorite) => favorite.songId === data._id
+              ) ? (
+                
+                <button
+                  onClick={() =>
+                    removeFavourite(definedUser?.user._id, data._id)
+                    
+                  }
+                >
+                  <TiTick className="text-textColor group-hover:text-headingColor text-2xl cursor-pointer"></TiTick>
+                </button>
               ) : (
-                <AlertError msg={alertMsg} />
+                <button
+                  onClick={() =>
+                    addSongsToFavourites(definedUser?.user._id, data._id)
+                  }
+                >
+                  <RiAddFill className="text-textColor group-hover:text-headingColor text-2xl cursor-pointer"></RiAddFill>
+                </button>
               )}
-            </>
-          )}
-        </motion.div>
-      ))}
-    </>
-  );
+            </div>
+            {alert && (
+              <>
+                {alert === "success" ? (
+                  <AlertSuccess msg={alertMsg} />
+                ) : (
+                  <AlertError msg={alertMsg} />
+                )}
+              </>
+            )}
+
+            {isLoading && (
+              <div className="absolute inset-0 bg-card animate-pulse"></div>
+            )}
+          </motion.div>
+        ))}
+      </>
+    );
+  };
+
+  return user && renderSongs(user, musics);
 };
 
 export default Home;

@@ -1,4 +1,5 @@
 const song = require("../models/song");
+const { isObjectIdOrHexString } = require("mongoose");
 
 const router = require("express").Router();
 
@@ -16,14 +17,19 @@ router.get("/getAll", async (req, res) => {
 });
 
 router.get("/getOne/:getOne", async (req, res) => {
-  const filter = { _id: req.params.getOne };
+  try {
+    const filter = { _id: req.params.getOne };
 
-  const data = await song.findOne(filter);
+    const data = await song.findOne(filter);
+    console.log(data);
 
-  if (data) {
-    res.status(200).send({ success: true, data: data });
-  } else {
-    res.status(200).send({ success: true, msg: "No Data Found" });
+    if (data) {
+      res.status(200).send({ success: true, data: data });
+    } else {
+      res.status(404).send({ success: false, msg: "No Data Found" });
+    }
+  } catch (error) {
+    res.status(500).send({ msg: "Internal server error" });
   }
 });
 
@@ -83,9 +89,20 @@ router.delete("/delete/:deleteId", async (req, res) => {
 });
 
 router.get("/getFavouritesSongs", async (req, res) => {
-  const query = req.query.songId;
-  console.log("query ", query);
-  res.send(query);
+  try {
+    const songId = req.query.songId;
+    console.log("query ", songId);
+
+    const data = await song.find({_id : {$in : songId}});
+    console.log("data" , data);
+    if (data) {
+      res.status(200).send({ success: true, data: data });
+    } else {
+      res.status(404).send({ success: false, msg: "No Data Found" });
+    }
+  } catch (error) {
+    res.status(500).send({ msg: "Internal server error" });
+  }
 });
 
 module.exports = router;

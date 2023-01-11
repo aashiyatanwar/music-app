@@ -100,7 +100,7 @@ const reducer = (state, action) => {
     case actionType.SET_FAVOURITES:
       return {
         ...state,
-        exist: action.exist,
+        favourite: action.favourite,
       };
 
     default:

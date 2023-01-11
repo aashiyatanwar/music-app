@@ -1,4 +1,7 @@
 import axios from "axios";
+import qs from "qs";
+
+
 const baseURL = "http://localhost:4000/";
 
 export const validateUser = async (token) => {
@@ -36,14 +39,19 @@ export const favouritesSong = async (userId, songId) => {
 };
 
 export const getFavouritesSongs = async (songId) => {
+  console.log(songId);
   try {
-    const res = axios.get(`${baseURL}api/songs/getFavouritesSongs`, {
+    const res = await axios.get(`${baseURL}api/songs/getFavouritesSongs`, {
       params: {
-        query: `${songId}`,
+        songId : songId
       },
+      paramsSerializer: params => {
+        return qs.stringify(params)
+      }
     });
+    console.log(res)
     console.log("getFavourites", res.data);
-    return res;
+    return res.data;
   } catch (error) {
     return null;
   }
@@ -91,6 +99,7 @@ export const removeUser = async (userId) => {
 export const getAllSongs = async () => {
   try {
     const res = await axios.get(`${baseURL}api/songs/getAll`);
+    console.log("songs", res);
     return res.data;
   } catch (error) {
     return null;
@@ -174,6 +183,7 @@ export const deleteAlbumById = async (id) => {
 export const getSongById = async (id) => {
   try {
     const res = axios.get(`${baseURL}api/songs/getOne/${id}`);
+    //console.log(res.data.data)
     return res;
   } catch (error) {
     return null;
