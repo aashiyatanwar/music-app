@@ -33,16 +33,18 @@ const Home = () => {
   ] = useStateValue();
 
   const [filteredSongs, setFilteredSongs] = useState(null);
-
+   const songss=[]
   useEffect(() => {
     if (!allSongs) {
       getAllSongs().then((data) => {
+        console.log("allSongs" , data)
         dispatch({
           type: actionType.SET_ALL_SONGS,
           allSongs: data.data,
         });
       });
     }
+    
   }, []);
 
   useEffect(() => {
@@ -135,7 +137,7 @@ export const HomeSongContainer = ({ musics }) => {
   console.log(isLoading, user, musics);
 
   const addSongToContext = (index) => {
-    //console.log("index" , index)
+    console.log("index" , index)
     if (!isSongPlaying) {
       dispatch({
         type: actionType.SET_SONG_PLAYING,

@@ -2,7 +2,9 @@ import axios from "axios";
 import qs from "qs";
 
 
-const baseURL = "http://localhost:4000/";
+//const baseURL = process.env.REACT_APP_BACKEND_URL;
+const baseURL = process.env.REACT_APP_BACKEND_URL;
+//const baseURL = "http://localhost:5000/"
 
 export const validateUser = async (token) => {
   try {
